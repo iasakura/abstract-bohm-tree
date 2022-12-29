@@ -43,7 +43,7 @@ pub fn kam_iter<'arena>(
     let new_env = Env::Cons {
         head: arena.alloc(Entry {
             binds: new_term
-                .name
+                .names
                 .iter()
                 .zip(args.into_iter())
                 .map(|(name, &arg)| (name.clone(), arg))
@@ -58,40 +58,17 @@ pub fn kam_iter<'arena>(
 
 #[cfg(test)]
 mod Test {
+    use crate::mocks::nf::{nf1, nf2};
+
     use super::*;
 
     #[test]
     fn exec_one_step() {
         let arena = Arena::new();
 
-        // \x.u(\y.x)
-        let nf1 = NF {
-            name: vec!["x".to_owned()],
-            head: "u".to_owned(),
-            args: vec![NF {
-                name: vec!["y".to_owned()],
-                head: "x".to_owned(),
-                args: vec![],
-            }],
-        };
-
-        // \r.r(r(z))
-        let nf2 = NF {
-            name: vec!["r".to_owned()],
-            head: "r".to_owned(),
-            args: vec![NF {
-                name: vec![],
-                head: "r".to_owned(),
-                args: vec![NF {
-                    name: vec![],
-                    head: "z".to_owned(),
-                    args: vec![],
-                }],
-            }],
-        };
-
         let mut binds = HashMap::new();
-        binds.insert("u".to_owned(), &nf2);
+        let t2 = nf2();
+        binds.insert("u".to_owned(), &t2);
 
         let env = Env::Cons {
             head: arena.alloc(Entry {
@@ -101,15 +78,16 @@ mod Test {
             tail: &Env::Nil,
         };
 
-        let args = &vec![&nf1];
+        let t1 = nf1();
+        let args = &vec![&t1];
         let (head, term, new_env) = kam_iter(&arena, "u".to_owned(), args, &env).unwrap();
         assert_eq!("r", head);
         assert_eq!(
             &vec![NF {
-                name: vec![],
+                names: vec![],
                 head: "r".to_owned(),
                 args: vec![NF {
-                    name: vec![],
+                    names: vec![],
                     head: "z".to_owned(),
                     args: vec![]
                 }]
@@ -118,11 +96,11 @@ mod Test {
         );
 
         let args = &term.iter().map(|x| x).collect();
-        let (head, term, new_env) = kam_iter(&arena, head, args, &new_env).unwrap();
+        let (head, term, _new_env) = kam_iter(&arena, head, args, &new_env).unwrap();
         assert_eq!("u", head);
         assert_eq!(
             &vec![NF {
-                name: vec!["y".to_owned()],
+                names: vec!["y".to_owned()],
                 head: "x".to_owned(),
                 args: vec![]
             }],

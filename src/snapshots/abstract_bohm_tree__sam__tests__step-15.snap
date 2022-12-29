@@ -1,0 +1,41 @@
+---
+source: src/sam.rs
+expression: pos
+---
+Odd(
+    OddPosition {
+        seq: EvenPosition(
+            [
+                (
+                    OMove {
+                        alphabet: Init,
+                    },
+                    PMove {
+                        alphabet: Free(
+                            "u",
+                        ),
+                        pointer: None,
+                    },
+                ),
+                (
+                    OMove {
+                        alphabet: Bound(
+                            0,
+                        ),
+                    },
+                    PMove {
+                        alphabet: Free(
+                            "u",
+                        ),
+                        pointer: None,
+                    },
+                ),
+            ],
+        ),
+        cur: OMove {
+            alphabet: Bound(
+                0,
+            ),
+        },
+    },
+)

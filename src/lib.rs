@@ -1,4 +1,6 @@
 pub mod kam;
+pub mod mocks;
+pub mod sam;
 
 pub enum Term {
     Abs { name: String, body: Box<Term> },
@@ -8,7 +10,7 @@ pub enum Term {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct NF {
-    name: Vec<String>,
+    names: Vec<String>,
     head: String,
     args: Vec<NF>,
 }

@@ -1,0 +1,16 @@
+---
+source: src/sam.rs
+expression: pos
+---
+Odd(
+    OddPosition {
+        seq: EvenPosition(
+            [],
+        ),
+        cur: OMove {
+            alphabet: Free(
+                "u",
+            ),
+        },
+    },
+)

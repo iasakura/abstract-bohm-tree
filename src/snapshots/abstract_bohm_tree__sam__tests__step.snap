@@ -1,0 +1,21 @@
+---
+source: src/sam.rs
+expression: pos
+---
+Even(
+    EvenPosition(
+        [
+            (
+                OMove {
+                    alphabet: Init,
+                },
+                PMove {
+                    alphabet: Free(
+                        "u",
+                    ),
+                    pointer: None,
+                },
+            ),
+        ],
+    ),
+)

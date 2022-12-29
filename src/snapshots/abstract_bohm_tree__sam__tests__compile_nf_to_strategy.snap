@@ -1,0 +1,106 @@
+---
+source: src/sam.rs
+expression: res
+---
+Strategy {
+    tree: {
+        OMove {
+            alphabet: Free(
+                "u",
+            ),
+        }: (
+            PMove {
+                alphabet: Bound(
+                    0,
+                ),
+                pointer: Some(
+                    0,
+                ),
+            },
+            Strategy {
+                tree: {
+                    OMove {
+                        alphabet: Bound(
+                            0,
+                        ),
+                    }: (
+                        PMove {
+                            alphabet: Bound(
+                                0,
+                            ),
+                            pointer: Some(
+                                1,
+                            ),
+                        },
+                        Strategy {
+                            tree: {
+                                OMove {
+                                    alphabet: Bound(
+                                        0,
+                                    ),
+                                }: (
+                                    PMove {
+                                        alphabet: Free(
+                                            "z",
+                                        ),
+                                        pointer: None,
+                                    },
+                                    Strategy {
+                                        tree: {},
+                                    },
+                                ),
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+        OMove {
+            alphabet: Init,
+        }: (
+            PMove {
+                alphabet: Free(
+                    "u",
+                ),
+                pointer: None,
+            },
+            Strategy {
+                tree: {
+                    OMove {
+                        alphabet: Bound(
+                            0,
+                        ),
+                    }: (
+                        PMove {
+                            alphabet: Free(
+                                "u",
+                            ),
+                            pointer: None,
+                        },
+                        Strategy {
+                            tree: {
+                                OMove {
+                                    alphabet: Bound(
+                                        0,
+                                    ),
+                                }: (
+                                    PMove {
+                                        alphabet: Bound(
+                                            0,
+                                        ),
+                                        pointer: Some(
+                                            1,
+                                        ),
+                                    },
+                                    Strategy {
+                                        tree: {},
+                                    },
+                                ),
+                            },
+                        },
+                    ),
+                },
+            },
+        ),
+    },
+}
