@@ -1,42 +1,19 @@
+use crate::abt::{Alphabet, OMove, PMove, Strategy};
+
 use anyhow::{Context, Result};
-use indexmap::IndexMap;
-use std::collections::VecDeque;
-
-use crate::NF;
-
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
-pub enum Alphabet {
-    Init,         // ●
-    Bound(usize), // Bound variables
-    Free(String), // Free variables
-}
-
-#[derive(PartialEq, Eq, Debug, Clone)]
-pub struct PMove {
-    alphabet: Alphabet,
-    pointer: Option<usize>,
-}
-
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
-pub struct OMove {
-    alphabet: Alphabet,
-}
-
-#[derive(PartialEq, Eq, Debug)]
-pub struct Strategy {
-    tree: IndexMap<OMove, (PMove, Strategy)>,
-}
+use derive_new::new;
 
 #[derive(Clone, Debug)]
-pub struct EvenPosition(Vec<(OMove, PMove)>);
+pub struct EvenPosition(pub Vec<(OMove, PMove)>);
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, new)]
 pub struct OddPosition {
-    seq: EvenPosition,
-    cur: OMove,
+    pub seq: EvenPosition,
+    pub cur: OMove,
 }
 
 impl EvenPosition {
+    #[allow(dead_code)]
     fn push(self, o: OMove) -> OddPosition {
         OddPosition { seq: self, cur: o }
     }
@@ -84,105 +61,10 @@ impl Env {
     }
 }
 
-fn compile_var_to_move(name: &String, context: &[Vec<String>]) -> PMove {
-    if context.len() == 0 {
-        PMove {
-            alphabet: Alphabet::Free(name.clone()),
-            pointer: None,
-        }
-    } else {
-        let head = &context[0];
-        let idx = head.iter().position(|v| v == name);
-        match idx {
-            Some(idx) => PMove {
-                alphabet: Alphabet::Bound(idx),
-                pointer: Some(0),
-            },
-            None => match compile_var_to_move(name, &context[1..]) {
-                PMove {
-                    alphabet: Alphabet::Bound(i),
-                    pointer: Some(j),
-                } => PMove {
-                    alphabet: Alphabet::Bound(i),
-                    pointer: Some(j + 1),
-                },
-                PMove {
-                    alphabet: Alphabet::Free(name),
-                    pointer: None,
-                } => PMove {
-                    alphabet: Alphabet::Free(name),
-                    pointer: None,
-                },
-                _ => panic!("something bad happens..."),
-            },
-        }
-    }
-}
-
-pub fn compile_nf_to_strategy(nf: &NF, context: &VecDeque<Vec<String>>) -> Strategy {
-    let NF { names, head, args } = nf;
-    let mut context = context.clone();
-    context.push_front(names.clone());
-    let pm = compile_var_to_move(head, context.make_contiguous());
-    let rests = args
-        .iter()
-        .enumerate()
-        .map(|(i, arg)| {
-            let mut rest = compile_nf_to_strategy(&arg, &context);
-            if let Some(val) = rest.tree.remove(&OMove {
-                alphabet: Alphabet::Init,
-            }) {
-                (
-                    OMove {
-                        alphabet: Alphabet::Bound(i),
-                    },
-                    val,
-                )
-            } else {
-                panic!("Something bad...")
-            }
-        })
-        .collect::<IndexMap<_, _>>();
-    Strategy {
-        tree: vec![(
-            OMove {
-                alphabet: Alphabet::Init,
-            },
-            (pm, Strategy { tree: rests }),
-        )]
-        .into_iter()
-        .collect(),
-    }
-}
-
-pub fn compile(nf: &NF, nfs: &IndexMap<String, NF>) -> Strategy {
-    let phi = compile_nf_to_strategy(nf, &VecDeque::new());
-    let mut psi = nfs
-        .iter()
-        .map(|(name, nf)| {
-            let mut t = compile_nf_to_strategy(&nf, &VecDeque::new());
-            if let Some(rest) = t.tree.remove(&OMove {
-                alphabet: Alphabet::Init,
-            }) {
-                (
-                    OMove {
-                        alphabet: Alphabet::Free(name.clone()),
-                    },
-                    rest,
-                )
-            } else {
-                panic!("Something bad...")
-            }
-        })
-        .collect::<IndexMap<_, _>>();
-    psi.extend(phi.tree);
-    Strategy { tree: psi }
-}
-
-fn get_next_even<'a>(s: &'a Strategy, q: &'a EvenPosition) -> Result<&'a Strategy> {
+pub fn get_next_even<'a>(s: &'a Strategy, q: &'a EvenPosition) -> Result<&'a Strategy> {
     let mut cur_s = s;
     for (om, pm) in q.0.iter() {
-        let (pm_next, s) = s
+        let (pm_next, s) = cur_s
             .tree
             .get(om)
             .context(format!("tree don't have key {om:?}: {:?}", s.tree))?;
@@ -194,18 +76,18 @@ fn get_next_even<'a>(s: &'a Strategy, q: &'a EvenPosition) -> Result<&'a Strateg
     Ok(cur_s)
 }
 
-fn get_next_odd<'a>(s: &'a Strategy, q: &'a OddPosition) -> Result<&'a PMove> {
+pub fn get_next_odd<'a>(s: &'a Strategy, q: &'a OddPosition) -> Result<(&'a PMove, &'a Strategy)> {
     let strategy = get_next_even(s, &q.seq)?;
-    let (next, _) = strategy
+    let (next, str) = strategy
         .tree
         .get(&q.cur)
         .context(format!("tree don't have key {:?}: {:?}", &q.cur, s.tree))?;
 
-    Ok(next)
+    Ok((next, str))
 }
 
 // (1)
-fn init() -> (OddPosition, Env) {
+pub fn init() -> (OddPosition, Env) {
     (
         OddPosition {
             seq: EvenPosition(vec![]),
@@ -219,8 +101,8 @@ fn init() -> (OddPosition, Env) {
 
 // (2n') / (2n+1)'
 fn step_2np(s: &Strategy, position: OddPosition, env: Env) -> Result<(EvenPosition, Env)> {
-    let next = get_next_odd(s, &position)?.clone();
-    Ok((position.push(next.clone()), env))
+    let next = get_next_odd(s, &position)?.0.clone();
+    Ok((position.push(next), env))
 }
 
 // (n)_b or (2n)_f
@@ -256,7 +138,7 @@ fn step_n(position: EvenPosition, env: Env) -> Result<(OddPosition, Env)> {
                 Env::Cons {
                     // Store the closure of arguments of the head variables.
                     head: Closure {
-                        position: position,
+                        position,
                         env: Box::new(env),
                     },
                     tail: new_env,
@@ -296,9 +178,14 @@ pub fn step(s: &Strategy, position: Position, env: Env) -> Result<(Position, Env
 
 #[cfg(test)]
 mod tests {
+    use indexmap::IndexMap;
     use insta::assert_debug_snapshot;
 
-    use crate::mocks::nf::{nf1, nf2};
+    use crate::{
+        abt::compile,
+        mocks::nf::{nf1, nf2},
+        NF,
+    };
 
     use super::*;
 
@@ -311,13 +198,6 @@ mod tests {
             },
             vec![("u".to_owned(), nf2())].into_iter().collect(),
         )
-    }
-
-    #[test]
-    fn test_compile_nf_to_strategy() {
-        let (t, env) = test1();
-        let res = compile(&t, &env);
-        assert_debug_snapshot!(res)
     }
 
     #[test]

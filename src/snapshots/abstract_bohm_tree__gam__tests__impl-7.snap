@@ -1,0 +1,31 @@
+---
+source: src/gam.rs
+expression: phi
+---
+GAMTree {
+    tree: {
+        OMove {
+            alphabet: Init,
+            step: 1,
+        }: Some(
+            (
+                PMove {
+                    alphabet: Free(
+                        "u",
+                    ),
+                    pointer: None,
+                },
+                GAMTree {
+                    tree: {
+                        OMove {
+                            alphabet: Bound(
+                                0,
+                            ),
+                            step: 3,
+                        }: None,
+                    },
+                },
+            ),
+        ),
+    },
+}

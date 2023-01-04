@@ -1,0 +1,14 @@
+---
+source: src/gam.rs
+expression: psi
+---
+GAMTree {
+    tree: {
+        OMove {
+            alphabet: Free(
+                "u",
+            ),
+            step: 2,
+        }: None,
+    },
+}

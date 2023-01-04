@@ -33,7 +33,7 @@ impl<'arena> Env<'arena> {
 pub fn kam_iter<'arena>(
     arena: &'arena Arena<Entry<'arena>>,
     head: String,
-    args: &'arena Vec<&'arena NF>,
+    args: &'arena [&'arena NF],
     env: &'arena Env<'arena>,
 ) -> Result<(String, &'arena Vec<NF>, Env)> {
     let (&new_term, &new_env) = env
@@ -45,7 +45,7 @@ pub fn kam_iter<'arena>(
             binds: new_term
                 .names
                 .iter()
-                .zip(args.into_iter())
+                .zip(args.iter())
                 .map(|(name, &arg)| (name.clone(), arg))
                 .collect::<HashMap<_, _>>(),
             env,
@@ -57,7 +57,7 @@ pub fn kam_iter<'arena>(
 }
 
 #[cfg(test)]
-mod Test {
+mod test {
     use crate::mocks::nf::{nf1, nf2};
 
     use super::*;

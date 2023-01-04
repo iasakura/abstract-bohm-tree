@@ -1,0 +1,28 @@
+---
+source: src/gam.rs
+expression: psi
+---
+GAMTree {
+    tree: {
+        OMove {
+            alphabet: Free(
+                "u",
+            ),
+            step: 2,
+        }: Some(
+            (
+                PMove {
+                    alphabet: Bound(
+                        0,
+                    ),
+                    pointer: Some(
+                        0,
+                    ),
+                },
+                GAMTree {
+                    tree: {},
+                },
+            ),
+        ),
+    },
+}

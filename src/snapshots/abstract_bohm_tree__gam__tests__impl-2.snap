@@ -1,0 +1,7 @@
+---
+source: src/gam.rs
+expression: psi
+---
+GAMTree {
+    tree: {},
+}
