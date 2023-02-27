@@ -16,3 +16,10 @@ pub struct NF {
     head: String,
     args: Vec<NF>,
 }
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct PCFNF {
+    names: Vec<String>,
+    body: String,
+    args: Vec<NF>,
+}
